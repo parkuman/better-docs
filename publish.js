@@ -580,6 +580,7 @@ exports.publish = function(taffyData, opts, tutorials) {
   })
 
   // copy user-specified static files to outdir
+  let staticMD = [];
   if (conf.default.staticFiles) {
     // The canonical property name is `include`. We accept `paths` for backwards compatibility
     // with a bug in JSDoc 3.2.x.
@@ -600,7 +601,23 @@ exports.publish = function(taffyData, opts, tutorials) {
         var toDir = fs.toDir( fileName.replace(sourcePath, outdir) )
 
         fs.mkPath(toDir)
-        fs.copyFileSync(fileName, toDir)
+        // if file is md convert to html and wrap in our header
+        if (path.extname(fileName) === ".md") {
+          let fileString = fs.readFileSync(fileName, 'utf8');
+          let content = markdownParser(fileString);
+          let name = path.basename(fileName, path.extname(fileName));
+          let jsonFilePath = path.dirname(fileName) + path.sep + name + ".json";
+          let metadata = {title: '', subtitle: ''};
+          if (fs.existsSync(jsonFilePath)) {
+            let jsonString = fs.readFileSync(jsonFilePath,'utf-8');
+            Object.assign(metadata, JSON.parse(jsonString));
+          }
+          let writePath = toDir + path.sep + name + '.html';
+          Object.assign(metadata, {content, writePath});
+          staticMD.push(metadata);
+        } else {
+          fs.copyFileSync(fileName, toDir);
+        }
       })
     })
   }
@@ -717,6 +734,13 @@ exports.publish = function(taffyData, opts, tutorials) {
         longname: (opts.mainpagetitle) ? opts.mainpagetitle : 'Main Page'
       }]
     ).concat(files), indexUrl)
+  
+  // generate static files
+  for (let index = 0; index < staticMD.length; index++) {
+    const metadata = staticMD[index];
+    var output = view.render('content.tmpl', metadata);
+    fs.writeFileSync(metadata.writePath, output);
+  }
 
   // set up the lists that we'll use to generate pages
   classes = taffy(members.classes)
