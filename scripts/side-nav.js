@@ -41,11 +41,17 @@ $().ready(() => {
         wrapper.append($('<h3/>').text(sectionName))
         wrapper.append(list)
       } else {
-      // Build TOC - assume we used static-content.tmpl so all is in one big
-      // vertical-section
-        let h3Register = [];
+        // Build TOC - assume we used static-content.tmpl so all is in one big
+        // vertical-section
         section.find('h1, h2, h3, h4').each( (index, element) => {
-          wrapper.append(`<${element.tagName}><a href="#${element.id}">${element.innerHTML}</a></${element.tagName}>`)
+          const link = $(`<a href="#${element.id}">${element.innerHTML}</a>`);
+          const header = $(`<${element.tagName}></${element.tagName}>`);
+          header.append(link);
+          wrapper.append(header)
+          links.push({ 
+            link: link, 
+            offset: $(element).offset().top
+          })
         })
       }
     }
