@@ -1,7 +1,29 @@
 const OFFSET = 150
 
 $().ready(() => {
-  // HACK: we wait for repeats to get on screen and then hack them out
+  // TODO: Is this the right way to do mermaid stuff?
+  if (document.querySelector('.mermaid')) {
+    mermaid.initialize({
+      startOnLoad: true,
+      htmlLabels: true,
+      flowchart: {
+        useMaxWidth: false,
+        curve: 'basis'
+      },
+      mermaid: {
+        callback: function(id) {
+          renderSidebar();
+        }
+      }
+    });
+  } else {
+    renderSidebar(); 
+  }
+
+})
+
+function renderSidebar() {
+    // HACK: we wait for repeats to get on screen and then hack them out
   // and then build a side nav
   removeRepeats();
   const wrapper = $('#side-nav')
@@ -43,14 +65,17 @@ $().ready(() => {
       } else {
         // Build TOC - assume we used static-content.tmpl so all is in one big
         // vertical-section
-        section.find('h1, h2, h3, h4').each( (index, element) => {
-          const link = $(`<a href="#${element.id}">${element.innerHTML}</a>`);
+        section.find('h1, h2, h3').each( (index, element) => {
+          element.classList.add('spec-header');
+          let copy = element.cloneNode(true);
+          copy.removeChild(copy.firstChild)
+          const link = $(`<a href="#${element.id}">${copy.innerText}</a>`);
           const header = $(`<${element.tagName}></${element.tagName}>`);
           header.append(link);
           wrapper.append(header)
           links.push({ 
             link: link, 
-            offset: $(element).offset().top
+            offset: $(element).offset().top + OFFSET/2 // TODO: I have no idea why this is needed
           })
         })
       }
@@ -103,7 +128,7 @@ $().ready(() => {
       core.animate({ scrollTop: link.offset - OFFSET + 1 }, 500)
     })
   })
-})
+}
 
 // time to hack JSDoc to get rid of ugly outputs
 // TODO: learn enough JSDoc to do this right.

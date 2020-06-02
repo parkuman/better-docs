@@ -9,13 +9,11 @@ var path = require('jsdoc/path')
 var taffy = require('taffydb').taffy
 var template = require('jsdoc/template')
 var util = require('util')
-const mermaid = require('mermaid');
 
 // const { getParser } = require('jsdoc/util/markdown')
+
+// This fork has special markdown config, diff than used in the JSDoc pieces.
 const { getParser } = require('./lib/jsdoc-util-markdown-fork')
-
-
-const fm = require('front-matter')
 
 var bundler = require('./bundler')
 
@@ -605,31 +603,26 @@ exports.publish = function(taffyData, opts, tutorials) {
         let isSpec;
         var sourcePath = fs.toDir(filePath)
         var toDir = fs.toDir( fileName.replace(sourcePath, outdir) )
-        if (toDir.slice(-6) === "/specs") {
+        if (path.dirname(fileName).slice(-6) === "/specs") {
           isSpec = true;
-          toDir = toDir.slice(0, -6)
+          toDir = toDir + "/specs"
         }
         fs.mkPath(toDir)
         // if file is md convert to html and wrap in our header
         if (path.extname(fileName) === ".md") {
-          // read file and parse with front-matter
-          let fileString = fs.readFileSync(fileName, 'utf8');
-          let parsed = fm(fileString);
-          let metadata = parsed.attributes;
-          // determine metadata
-          if (!metadata.title) metadata.title = 'No title set in frontmatter'
-          if (!metadata.subtitle) metadata.subtitle = 'No subtitle set in frontmatter'
+          let metadata = {}
           let name = path.basename(fileName, path.extname(fileName));
-          if (isSpec) {
-            name = "spec-" + name
-          }
           metadata.writePath = toDir + path.sep + name + '.html';
           metadata.fileName = name + '.html'
           metadata.isSpec = isSpec
 
           // render to html
           const markdownParser = getParser();
-          metadata.content = markdownParser(parsed.body);
+          let fileString = fs.readFileSync(fileName, 'utf8');
+          let match = fileString.match(/^# (.*)$/m);
+          metadata.content = markdownParser(fileString);
+          metadata.title = match? match[1] : 'no-title';
+          metadata.subtitle = ''
           staticMD.push(metadata);
         } else {
           fs.copyFileSync(fileName, toDir);

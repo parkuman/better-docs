@@ -9,19 +9,24 @@ if(env.conf.templates && env.conf.templates.betterDocs) {
 
 var self = this
 var isTutorial = subtitle === 'Tutorial'
-var isSpec = subtitle === 'Specification'
-
+if (typeof isSpec === 'undefined') isSpec = false
 var search = env.conf.templates && env.conf.templates.search
+var subDirPath = isSpec? "../" : ""
 
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
-<?js= this.partial('head.tmpl', { betterDocs, title }) ?>
+<head>
+  <?js= this.partial('head.tmpl', { betterDocs, title }) ?>
+  <link type="text/css" rel="stylesheet" href="<?js= subDirPath ?>styles/app.min.css">
+  <link type="text/css" rel="stylesheet" href="<?js= subDirPath ?>styles/iframe.css">
+  <link type="text/css" rel="stylesheet" href="<?js= subDirPath + betterDocs.css ?>">
+</head>
 
 <body class="<?js= self.smallHeader ? 'layout small-header' : 'layout'?>">
     <div id="stickyNavbarOverlay"></div>
-    <?js= this.partial('topnav.tmpl', { betterDocs }) ?>
+    <?js= this.partial('topnav.tmpl', { betterDocs, subDirPath }) ?>
     <div id="main">
         <div
             class="sidebar <?js= isTutorial ? 'tutorials' : '' ?>"
@@ -44,10 +49,12 @@ var search = env.conf.templates && env.conf.templates.search
         </div>
         <div class="core" id="main-content-wrapper">
             <div class="content">
-                <header class="page-title">
-                    <p><?js= subtitle ?></p>
-                    <h1><?js= title ?></h1>
-                </header>
+                <?js if (!isSpec) { ?>
+                    <header class="page-title">
+                        <p><?js= subtitle ?></p>
+                        <h1><?js= title ?></h1>
+                    </header>
+                <?js } ?>
                 <?js= content ?>
             </div>
             <?js if (betterDocs.hideGenerator !== true) { ?>
@@ -65,11 +72,11 @@ var search = env.conf.templates && env.conf.templates.search
         <div id="side-nav" class="side-nav <?js= isSpec ? 'spec' : ''?>">
         </div>
     </div>
-<script src="scripts/app.min.js"></script>
+<script src="<?js= subDirPath ?>scripts/app.min.js"></script>
 <script>PR.prettyPrint();</script>
-<script src="scripts/linenumber.js"> </script>
+<script src="<?js= subDirPath ?>scripts/linenumber.js"> </script>
 <?js if(search) { ?>
-<script src="scripts/search.js"> </script>
+<script src="<?js= subDirPath ?>scripts/search.js"> </script>
 <?js } ?>
 </body>
 </html>
