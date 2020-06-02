@@ -758,7 +758,7 @@ exports.publish = function(taffyData, opts, tutorials) {
   // generate static files
   for (let index = 0; index < staticMD.length; index++) {
     const metadata = staticMD[index];
-    var output = view.render('content.tmpl', metadata);
+    var output = view.render('static-content.tmpl', metadata);
     fs.writeFileSync(metadata.writePath, output);
   }
 

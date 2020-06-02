@@ -1,6 +1,9 @@
 const OFFSET = 150
 
 $().ready(() => {
+  // HACK: we wait for repeats to get on screen and then hack them out
+  // and then build a side nav
+  removeRepeats();
   const wrapper = $('#side-nav')
 
   /**
@@ -12,6 +15,8 @@ $().ready(() => {
     wrapper.hide()
   }
 
+  // HACK: track refs, don't repeat (JSDoc repeats)
+  // TODO: don't repeat content when JSDoc repeats
   let hrefs = [];
   $('.vertical-section').each((i, el) => {
     const section = $(el)
@@ -19,6 +24,7 @@ $().ready(() => {
     if (sectionName) {
       let didFind = false;
       const list = $('<ul></ul>')
+      // Look for members
       section.find('.members h4.name').each((i, el) => {
         const navLink = $(el)
         const name = navLink.find('.code-name')
@@ -34,6 +40,13 @@ $().ready(() => {
       if (didFind) {
         wrapper.append($('<h3/>').text(sectionName))
         wrapper.append(list)
+      } else {
+      // Build TOC - assume we used static-content.tmpl so all is in one big
+      // vertical-section
+        let h3Register = [];
+        section.find('h1, h2, h3, h4').each( (index, element) => {
+          wrapper.append(`<${element.tagName}><a href="#${element.id}">${element.innerHTML}</a></${element.tagName}>`)
+        })
       }
     }
     else {
@@ -85,3 +98,78 @@ $().ready(() => {
     })
   })
 })
+
+// time to hack JSDoc to get rid of ugly outputs
+// TODO: learn enough JSDoc to do this right.
+function removeRepeats() {
+  // 1. Please don't repeat the entire class definition just because of an overloaded constructor.
+  // Do put the ctors into an array for later use
+  let ctors = [];
+  let contentNodes = Array.from(document.querySelectorAll('.core .content')[0].childNodes);
+  let firstSectionIndex = contentNodes.findIndex( x => x.tagName === 'SECTION');
+  if (firstSectionIndex > -1) {
+    for (let index = 0; index < contentNodes.length; index++) {
+      if(index >= firstSectionIndex) {
+        let node = contentNodes[index];
+        // Save the ctor 'member' chunk for later use
+        if (node.tagName === "SECTION") {
+          let ctorDesc = node.querySelector("article .container-overview .member");
+          ctors.push(ctorDesc);
+        }
+        // don't remove the first one!
+        if (index > firstSectionIndex) node.remove();
+      }
+    }
+  }
+
+  // 2. Do put those constructors together in the "container overview section".
+  let members = document.querySelector('.core .content section article .container-overview .members');
+  if (members && ctors.length > 0) {
+    ctors.sort(byFormNumber);
+    members.append(...ctors);
+  }
+
+  // 3. Don't repeat class name for overloaded constructors
+  let subsectionTitles = Array.from(document.querySelectorAll('.subsection-title'));
+  let classesTitle = subsectionTitles.find( x => x.textContent.toLowerCase() === "classes");
+  if (classesTitle) {
+    let siblings = Array.from(classesTitle.parentNode.children);
+    let dl = siblings.find(s => s.tagName === "DL");
+    let children = Array.from(dl.children);
+    let childrenContents = children.map(c => c.textContent);
+    let uniq = children.filter( (item, index) => {
+      return childrenContents.indexOf(item.textContent) === index;
+    });
+    dl.innerHTML = '';
+    dl.append(...uniq);
+  }
+}
+
+// Assuming a JSDoc ctor description with the phrase "Form n" surrounded by whitespace, we sort `n` in descending order
+function byFormNumber(a, b) {
+  let formA, formB;
+  let matchA = a.innerText.match(/\bForm (\d)\b/);
+  let matchB = b.innerText.match(/\bForm (\d)\b/);
+  if (matchA) {
+    formA = Number(matchA[1]);
+  }
+  if (matchB) {
+    formB = Number(matchB[1]);
+  }
+  if (!isNaN(formA) && !isNaN(formB)) {
+    return numericCompare(formA, formB);
+  } else if (!isNaN(formA)) {
+    return 1;
+  } else if (!isNaN(formB)) {
+    return -1;
+  } else {
+    return 0;
+  }
+}
+
+// This is how sort functions work.
+function numericCompare( a, b ) {
+  if ( a < b ) return -1;
+  if ( a > b ) return 1;
+  return 0;
+}
