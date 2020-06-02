@@ -9,10 +9,15 @@ var path = require('jsdoc/path')
 var taffy = require('taffydb').taffy
 var template = require('jsdoc/template')
 var util = require('util')
-const { getParser } = require('jsdoc/util/markdown')
+const mermaid = require('mermaid');
+
+// const { getParser } = require('jsdoc/util/markdown')
+const { getParser } = require('./lib/jsdoc-util-markdown-fork')
+
+
+const fm = require('front-matter')
 
 var bundler = require('./bundler')
-const markdownParser = getParser()
 
 var htmlsafe = helper.htmlsafe
 var linkto = helper.linkto
@@ -387,7 +392,7 @@ function buildGroupNav (members, title) {
   nav += buildMemberNav(members.namespaces || [], 'Namespaces', seen, linkto)
   nav += buildMemberNav(members.classes || [], 'Classes', seen, linkto)
   nav += buildMemberNav(members.interfaces || [], 'Interfaces', seen, linkto)
-  nav += buildMemberNav(members.events || [], 'Events', seen, linkto)
+  // nav += buildMemberNav(members.events || [], 'Events', seen, linkto)
   nav += buildMemberNav(members.mixins || [], 'Mixins', seen, linkto)
   nav += buildMemberNav(members.components || [], 'Components', seen, linkto)
     
@@ -597,23 +602,34 @@ exports.publish = function(taffyData, opts, tutorials) {
       extraStaticFiles = staticFileScanner.scan([filePath], 10, staticFileFilter)
 
       extraStaticFiles.forEach(function(fileName) {
+        let isSpec;
         var sourcePath = fs.toDir(filePath)
         var toDir = fs.toDir( fileName.replace(sourcePath, outdir) )
-
+        if (toDir.slice(-6) === "/specs") {
+          isSpec = true;
+          toDir = toDir.slice(0, -6)
+        }
         fs.mkPath(toDir)
         // if file is md convert to html and wrap in our header
         if (path.extname(fileName) === ".md") {
+          // read file and parse with front-matter
           let fileString = fs.readFileSync(fileName, 'utf8');
-          let content = markdownParser(fileString);
+          let parsed = fm(fileString);
+          let metadata = parsed.attributes;
+          // determine metadata
+          if (!metadata.title) metadata.title = 'No title set in frontmatter'
+          if (!metadata.subtitle) metadata.subtitle = 'No subtitle set in frontmatter'
           let name = path.basename(fileName, path.extname(fileName));
-          let jsonFilePath = path.dirname(fileName) + path.sep + name + ".json";
-          let metadata = {title: '', subtitle: ''};
-          if (fs.existsSync(jsonFilePath)) {
-            let jsonString = fs.readFileSync(jsonFilePath,'utf-8');
-            Object.assign(metadata, JSON.parse(jsonString));
+          if (isSpec) {
+            name = "spec-" + name
           }
-          let writePath = toDir + path.sep + name + '.html';
-          Object.assign(metadata, {content, writePath});
+          metadata.writePath = toDir + path.sep + name + '.html';
+          metadata.fileName = name + '.html'
+          metadata.isSpec = isSpec
+
+          // render to html
+          const markdownParser = getParser();
+          metadata.content = markdownParser(parsed.body);
           staticMD.push(metadata);
         } else {
           fs.copyFileSync(fileName, toDir);
@@ -734,6 +750,10 @@ exports.publish = function(taffyData, opts, tutorials) {
         longname: (opts.mainpagetitle) ? opts.mainpagetitle : 'Main Page'
       }]
     ).concat(files), indexUrl)
+  
+  // specs
+  let specLIs = staticMD.filter(md => md.isSpec).map( s => `<li><a href="${s.fileName}">${s.title}</a></li>` )
+  view.specsNav = `<div class="category"><h3>Specs</h3><ul>${specLIs.join('')}</ul></div>`;
   
   // generate static files
   for (let index = 0; index < staticMD.length; index++) {

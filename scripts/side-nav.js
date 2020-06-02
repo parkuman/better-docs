@@ -12,22 +12,29 @@ $().ready(() => {
     wrapper.hide()
   }
 
+  let hrefs = [];
   $('.vertical-section').each((i, el) => {
     const section = $(el)
     const sectionName = section.find('> h1').text()
     if (sectionName) {
-      wrapper.append($('<h3/>').text(sectionName))
+      let didFind = false;
       const list = $('<ul></ul>')
       section.find('.members h4.name').each((i, el) => {
         const navLink = $(el)
         const name = navLink.find('.code-name')
           .clone().children().remove().end().text()
         const href = navLink.find('a').attr('href')
+        if (hrefs.includes(href)) return
+        didFind = true;
+        hrefs.push(href)
         const link = $(`<a href="${href}" />`).text(name)
         list.append($('<li></li>').append(link))
         links.push({ link, offset: navLink.offset().top})
       })
-      wrapper.append(list)
+      if (didFind) {
+        wrapper.append($('<h3/>').text(sectionName))
+        wrapper.append(list)
+      }
     }
     else {
       section.find('.members h4.name').each((i, el) => {
@@ -35,6 +42,8 @@ $().ready(() => {
         const name = navLink.find('.code-name')
           .clone().children().remove().end().text()
         const href = navLink.find('a').attr('href')
+        if (hrefs.includes(href)) return
+        hrefs.push(href)
         const link = $(`<a href="${href}" />`).text(name)
         wrapper.append(link)
         links.push({ link, offset: navLink.offset().top})
