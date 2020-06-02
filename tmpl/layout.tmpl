@@ -12,7 +12,7 @@ var isTutorial = subtitle === 'Tutorial'
 if (typeof isSpec === 'undefined') isSpec = false
 var search = env.conf.templates && env.conf.templates.search
 var subDirPath = isSpec? "../" : ""
-
+var isSupport = title === "Support"
 ?>
 
 <!DOCTYPE html>
@@ -49,7 +49,7 @@ var subDirPath = isSpec? "../" : ""
         </div>
         <div class="core" id="main-content-wrapper">
             <div class="content">
-                <?js if (!isSpec) { ?>
+                <?js if (!isSpec && !isSupport) { ?>
                     <header class="page-title">
                         <p><?js= subtitle ?></p>
                         <h1><?js= title ?></h1>

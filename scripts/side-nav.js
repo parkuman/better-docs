@@ -1,4 +1,4 @@
-const OFFSET = 150
+const OFFSET = 75
 
 $().ready(() => {
   // TODO: Is this the right way to do mermaid stuff?
@@ -65,19 +65,22 @@ function renderSidebar() {
       } else {
         // Build TOC - assume we used static-content.tmpl so all is in one big
         // vertical-section
-        section.find('h1, h2, h3').each( (index, element) => {
-          element.classList.add('spec-header');
-          let copy = element.cloneNode(true);
-          copy.removeChild(copy.firstChild)
-          const link = $(`<a href="#${element.id}">${copy.innerText}</a>`);
-          const header = $(`<${element.tagName}></${element.tagName}>`);
-          header.append(link);
-          wrapper.append(header)
-          links.push({ 
-            link: link, 
-            offset: $(element).offset().top + OFFSET/2 // TODO: I have no idea why this is needed
+        let headers = section.find('h1, h2, h3');
+        if (headers.length > 1) {
+          headers.each( (index, element) => {
+            element.classList.add('spec-header');
+            let copy = element.cloneNode(true);
+            copy.removeChild(copy.firstChild)
+            const link = $(`<a href="#${element.id}">${copy.innerText}</a>`);
+            const header = $(`<${element.tagName}></${element.tagName}>`);
+            header.append(link);
+            wrapper.append(header)
+            links.push({ 
+              link: link, 
+              offset: $(element).offset().top
+            })
           })
-        })
+        }
       }
     }
     else {
