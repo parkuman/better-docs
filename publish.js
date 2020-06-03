@@ -32,9 +32,12 @@ function find(spec) {
   return helper.find(data, spec)
 }
 
-function tutoriallink(tutorialName) {
+function tutoriallink(tutorialName, needsPrefix) {
   let tutorial = allTheTutorials.children.find(c => c.name === tutorialName);
   let slug = tutorial.longname || tutorial.name;
+  if (needsPrefix) {
+    slug = "guides/" + slug;
+  }
   return `<a href="${slug}.html">${tutorial.title}</a>`
   // The baked-in helper prefixes `tutorial` which isn't very nice.
   // return  helper.toTutorial(tutorialName, null, {
@@ -508,7 +511,7 @@ exports.publish = function(taffyData, opts, tutorials) {
 
   templatePath = path.normalize(opts.template)
   view = new template.Template( path.join(templatePath, 'tmpl') )
-
+  view.tutoriallink = tutoriallink;
   // claim some special filenames in advance, so the All-Powerful Overseer of Filename Uniqueness
   // doesn't try to hand them out later
   indexUrl = helper.getUniqueFilename('index')
