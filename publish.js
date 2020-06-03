@@ -26,17 +26,22 @@ var data
 var view
 
 var outdir = path.normalize(env.opts.destination)
+var allTheTutorials; // make tutorials visible everywhere to support by-name lookup and modify tutorial links yuck!
 
 function find(spec) {
   return helper.find(data, spec)
 }
 
-function tutoriallink(tutorial) {
-  return helper.toTutorial(tutorial, null, {
-    tag: 'em',
-    classname: 'disabled',
-    prefix: 'Tutorial: '
-  })
+function tutoriallink(tutorialName) {
+  let tutorial = allTheTutorials.children.find(c => c.name === tutorialName);
+  let slug = tutorial.longname || tutorial.name;
+  return `<a href="${slug}.html">${tutorial.title}</a>`
+  // The baked-in helper prefixes `tutorial` which isn't very nice.
+  // return  helper.toTutorial(tutorialName, null, {
+  //   tag: 'em',
+  //   classname: 'disabled',
+  //   prefix: 'Tutorial: '
+  // })
 }
 
 function getAncestorLinks(doclet) {
@@ -470,6 +475,7 @@ function buildNav(members, navTypes = null, betterDocs) {
     @param {Tutorial} tutorials
  */
 exports.publish = function(taffyData, opts, tutorials) {
+  allTheTutorials = tutorials
   var classes
   var conf
   var externals
@@ -746,7 +752,7 @@ exports.publish = function(taffyData, opts, tutorials) {
   
   // specs
   let specLIs = staticMD.filter(md => md.isSpec).map( s => `<li><a href="${s.fileName}">${s.title}</a></li>` )
-  view.specsNav = `<div class="category"><h3>Specs</h3><ul>${specLIs.join('')}</ul></div>`;
+  view.specsNav = `<div class="category"><h3>Specification</h3><ul>${specLIs.join('')}</ul></div>`;
   
   // generate static files
   for (let index = 0; index < staticMD.length; index++) {
@@ -803,7 +809,7 @@ exports.publish = function(taffyData, opts, tutorials) {
   })
 
   // TODO: move the tutorial functions to templateHelper.js
-  function generateTutorial(title, subtitle, tutorial, filename) {
+  function generateTutorial(title, subtitle, tutorial) {
     var tutorialData = {
       title: title,
       subtitle: subtitle,
@@ -811,19 +817,21 @@ exports.publish = function(taffyData, opts, tutorials) {
       content: tutorial.parse(),
       children: tutorial.children
     }
-    var tutorialPath = path.join(outdir, filename)
+    
+    let guideDir = path.join(outdir, "guides");
+    fs.mkPath(guideDir)
+    var tutorialPath = path.join(guideDir, tutorial.name + ".html");
     var html = view.render('tutorial.tmpl', tutorialData)
 
     // yes, you can use {@link} in tutorials too!
     html = helper.resolveLinks(html) // turn {@link foo} into <a href="foodoc.html">foo</a>
-
     fs.writeFileSync(tutorialPath, html, 'utf8')
   }
 
   // tutorials can have only one parent so there is no risk for loops
   function saveChildren(node) {
     node.children.forEach(function(child) {
-      generateTutorial(child.title, 'Tutorial', child, helper.tutorialToUrl(child.name))
+      generateTutorial(child.title, 'Tutorial', child)
       saveChildren(child)
     })
   }

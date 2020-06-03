@@ -34,41 +34,42 @@
                     <?js }); ?>
                 </div>
                 <?js } ?>
-            <div class="navigation">
-                <a
-                    href="<?js= subDirPath ?><?js= betterDocs.landing ? 'docs.html' : 'index.html' ?>"
-                    class="link"
-                >
-                    API Documentation
-                </a>
-                <div class="dropdown is-hoverable is-right">
-                    <a class="dropdown-trigger link">
-                        Tutorials
-                        <i class="fas fa-chevron-down fa-xs"></i>
-                    </a>
-                    <div class="dropdown-menu">
-                        <div class="dropdown-content">
+            <div id="right-nav" class="navigation">
+                <div id="sm-screen-nav-button" >Menu</div>
+                <nav>
+                    <ul>
+                        <li>
+                            <a
+                            href="<?js= subDirPath ?><?js= betterDocs.landing ? 'docs.html' : 'index.html' ?>"
+                            class="link">
+                                API Documentation
+                            </a>
+                        </li>
                         <?js if (this.tutorials.length) { ?>
-                            <?js this.tutorials.forEach(function(tutorial) { ?>
-                                <a class="dropdown-item" href="<?js= subDirPath + self.tutorialToUrl(tutorial.name) ?>">
-                                    <?js= tutorial.title ?>
+                            <?js 
+                            tutorial = this.tutorials[0] 
+                            tutorialHref = 'guides/' + tutorial.name + '.html'
+                            ?>
+                            <li>
+                                <a class="link" href="<?js= subDirPath + tutorialHref ?>">
+                                    Guides
                                 </a>
-                            <?js }); ?>
+                            </li>
                         <?js } ?>
-                        </div>
-                    </div>
-                </div>
-                <?js if(betterDocs.navLinks && betterDocs.navLinks.length) { ?> 
-                    <?js betterDocs.navLinks.forEach(function(link) { ?>
-                        <a
-                            class="link user-link <?js= link.className ? link.className : '' ?>"
-                            href="<?js= subDirPath + link.href ?>"
-                        >
-                            <?js= link.label ?>
-                        </a>
-                    <?js }) ?>
-                <?js } ?>
-                
+                        <?js if(betterDocs.navLinks && betterDocs.navLinks.length) { ?> 
+                            <?js betterDocs.navLinks.forEach(function(link) { ?>
+                                <li>
+                                    <a
+                                        class="link user-link <?js= link.className ? link.className : '' ?>"
+                                        href="<?js= subDirPath + link.href ?>"
+                                    >
+                                        <?js= link.label ?>
+                                    </a>
+                                </li>
+                            <?js }) ?>
+                        <?js } ?>
+                    </ul>
+                </nav>                
             </div>
         </div>
     </div>

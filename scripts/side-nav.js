@@ -1,14 +1,18 @@
 const OFFSET = 75
 
 $().ready(() => {
-  // TODO: Is this the right way to do mermaid stuff?
+  /* 
+  * TODO: Is this the right way to do mermaid stuff?
+  * NOTE: There seems to be a x-platform issue (windows chrome output much larger than
+  * macOS chrom output), so this is unused for now ... may need to pull out mermaid 
+  * altogether - KCE Jun2020
+  */
   if (document.querySelector('.mermaid')) {
     mermaid.initialize({
       startOnLoad: true,
       htmlLabels: true,
-      flowchart: {
+      sequence: {
         useMaxWidth: false,
-        curve: 'basis'
       },
       mermaid: {
         callback: function(id) {
