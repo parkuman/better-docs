@@ -54,8 +54,12 @@ if (isTutorial || isSpec) {
             <div class="content">
                 <?js if (!isSpec && !isSupport) { ?>
                     <header class="page-title">
-                        <p><?js= subtitle ?></p>
-                        <h1><?js= title ?></h1>
+                        <?js if (subtitle !== "" ) { ?>
+                            <p><?js= subtitle ?></p>
+                        <?js } ?>
+                        <?js if (title !== "" ) { ?>
+                            <h1><?js= title ?></h1>
+                        <?js } ?>
                     </header>
                 <?js } ?>
                 <?js= content ?>

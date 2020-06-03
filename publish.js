@@ -741,7 +741,7 @@ exports.publish = function(taffyData, opts, tutorials) {
   files = find({kind: 'file'})
   packages = find({kind: 'package'})
 
-  generate('Home', 'Title',
+  generate('', '',
     packages.concat(
       [{
         kind: 'mainpage',
