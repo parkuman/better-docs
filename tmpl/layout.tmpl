@@ -10,6 +10,7 @@ if(env.conf.templates && env.conf.templates.betterDocs) {
 var self = this
 var isTutorial = subtitle === 'Tutorial'
 var isSupport = title === "Support"
+var isGettingStarted = title === "Getting Started"
 if (typeof isSpec === 'undefined') isSpec = false
 var search = env.conf.templates && env.conf.templates.search
 var subDirPath = ""
@@ -58,7 +59,7 @@ if (isTutorial || isSpec) {
         </div>
         <div class="core" id="main-content-wrapper">
             <div class="content">
-                <?js if (!isSpec && !isSupport) { ?>
+                <?js if (!isSpec && !isSupport && !isGettingStarted) { ?>
                     <header class="page-title">
                         <?js if (subtitle !== "" ) { ?>
                             <p><?js= subtitle ?></p>
